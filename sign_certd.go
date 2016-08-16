@@ -499,6 +499,25 @@ func (h *certRequestHandler) rejectRequest(requestID string, signerFp string, en
 	return nil
 }
 
+func (h *certRequestHandler) reloadConfig(rw http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+	if err != nil {
+		http.Error(rw, fmt.Sprintf("%v", err), http.StatusBadRequest)
+		return 
+	}
+
+	if req.Form["config_path"] == nil || len(req.Form["config_path"]) == 0 {
+		http.Error(rw, "Please specify config file path", http.StatusBadRequest)
+		return
+	}
+	config_path := req.Form["config_path"][0]
+	log.Printf("Reload config from file ", config_path)
+	h.Config = loadConfig(config_path)
+	rw.WriteHeader(http.StatusOK)
+	rw.Write([]byte("ok"))
+	return
+}
+
 func (h *certRequestHandler) addConfirmation(requestID string, signerFp string, envConfig ssh_ca_util.SignerdConfig) error {
 	if h.state[requestID].certRejected {
 		return fmt.Errorf("Attempt to sign a rejected cert.")
@@ -576,14 +595,18 @@ func signdFlags() []cli.Flag {
 	}
 }
 
-func signCertd(c *cli.Context) {
-	configPath := c.String("config-file")
+func loadConfig(configPath string) map[string]ssh_ca_util.SignerdConfig {
 	config := make(map[string]ssh_ca_util.SignerdConfig)
 	err := ssh_ca_util.LoadConfig(configPath, &config)
 	if err != nil {
 		log.Println("Load Config failed:", err)
 		os.Exit(1)
 	}
+	return config
+}
+
+func signCertd(c *cli.Context) {
+	config := loadConfig(c.String("config-file"))
 	runSignCertd(config)
 }
 
@@ -624,8 +647,18 @@ func runSignCertd(config map[string]ssh_ca_util.SignerdConfig) {
 	requests := r.Path("/cert/requests").Subrouter()
 	requests.Methods("POST").HandlerFunc(requestHandler.createSigningRequest)
 	requests.Methods("GET").HandlerFunc(requestHandler.listPendingRequests)
+
 	request := r.Path("/cert/requests/{requestID}").Subrouter()
 	request.Methods("GET").HandlerFunc(requestHandler.getRequestStatus)
 	request.Methods("POST", "DELETE").HandlerFunc(requestHandler.signOrRejectRequest)
-	http.ListenAndServe(":8080", r)
+
+	admin_request := r.Path("/admin/reload").Subrouter()
+	admin_request.Methods("POST").HandlerFunc(requestHandler.reloadConfig)
+
+	httpPort := os.Getenv("SSH_CA_SERVER_PORT")
+	if httpPort == "" {
+		httpPort = "8080"
+	}
+	log.Println("Using SSH agent at", httpPort)
+	http.ListenAndServe(":" + httpPort, r)
 }
