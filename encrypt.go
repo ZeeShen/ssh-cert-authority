@@ -71,7 +71,7 @@ func generateEcdsa() ([]byte, error) {
 	return pem.EncodeToMemory(pemBlock), nil
 }
 
-func cmdEncryptKey(c *cli.Context) {
+func cmdEncryptKey(c *cli.Context) error {
 	region, err := ec2metadata.New(session.New(), aws.NewConfig()).Region()
 	if err != nil {
 		fmt.Printf("Unable to determine our region: %s", err)
@@ -118,6 +118,7 @@ func cmdEncryptKey(c *cli.Context) {
 		fmt.Printf("Unable to write new encrypted private key: %s", err)
 		os.Exit(1)
 	}
+	return nil
 }
 
 func encryptKeyFromStdin(keyId, region string) ([]byte, error) {

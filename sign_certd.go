@@ -512,9 +512,11 @@ func (h *certRequestHandler) reloadConfig(rw http.ResponseWriter, req *http.Requ
 	}
 	config_path := req.Form["config_path"][0]
 	log.Printf("Reload config from file ", config_path)
-	h.Config = loadConfig(config_path)
+	config := loadConfig(config_path)
+	log.Println("New config", config)
+	h.Config = config
 	rw.WriteHeader(http.StatusOK)
-	rw.Write([]byte("ok"))
+	rw.Write([]byte("ok\n"))
 	return
 }
 
@@ -605,9 +607,10 @@ func loadConfig(configPath string) map[string]ssh_ca_util.SignerdConfig {
 	return config
 }
 
-func signCertd(c *cli.Context) {
+func signCertd(c *cli.Context) error {
 	config := loadConfig(c.String("config-file"))
 	runSignCertd(config)
+	return nil
 }
 
 func makeCertRequestHandler(config map[string]ssh_ca_util.SignerdConfig) certRequestHandler {

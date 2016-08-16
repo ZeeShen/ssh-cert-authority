@@ -38,7 +38,7 @@ func listCertFlags() []cli.Flag {
 	}
 }
 
-func listCerts(c *cli.Context) {
+func listCerts(c *cli.Context) error {
 
 	configPath := c.String("config-file")
 	environment := c.String("environment")
@@ -107,4 +107,5 @@ func listCerts(c *cli.Context) {
 			}
 		}
 	}
+	return nil
 }

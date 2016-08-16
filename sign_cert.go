@@ -51,7 +51,7 @@ func signCertFlags() []cli.Flag {
 	}
 }
 
-func signCert(c *cli.Context) {
+func signCert(c *cli.Context) error {
 	configPath := c.String("config-file")
 	allConfig := make(map[string]ssh_ca_util.SignerConfig)
 	err := ssh_ca_util.LoadConfig(configPath, &allConfig)
@@ -161,5 +161,5 @@ func signCert(c *cli.Context) {
 	} else {
 		fmt.Println("Signature accepted by server.")
 	}
-
+	return nil
 }

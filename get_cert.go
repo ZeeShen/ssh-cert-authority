@@ -39,7 +39,7 @@ func getCertFlags() []cli.Flag {
 	}
 }
 
-func getCert(c *cli.Context) {
+func getCert(c *cli.Context) error {
 
 	configPath := c.String("config-file")
 	environment := c.String("environment")
@@ -107,6 +107,7 @@ func getCert(c *cli.Context) {
 			os.Exit(1)
 		}
 	}
+	return nil
 }
 
 func findKeyLocally(key ssh.PublicKey) (string, error) {

@@ -70,7 +70,7 @@ func requestCertFlags() []cli.Flag {
 	}
 }
 
-func requestCert(c *cli.Context) {
+func requestCert(c *cli.Context) error {
 	allConfig := make(map[string]ssh_ca_util.RequesterConfig)
 	configPath := c.String("config-file")
 	err := ssh_ca_util.LoadConfig(configPath, &allConfig)
@@ -180,5 +180,5 @@ func requestCert(c *cli.Context) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
+	return nil
 }
