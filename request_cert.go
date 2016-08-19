@@ -35,7 +35,7 @@ func requestCertFlags() []cli.Flag {
 	return []cli.Flag{
 		cli.StringFlag{
 			Name:  "principals, p",
-			Value: "ec2-user,ubuntu",
+			Value: "ec2-user,ubuntu,deployer",
 			Usage: "Valid usernames for login, comma separated (e.g. ec2-user,ubuntu)",
 		},
 		cli.StringFlag{
